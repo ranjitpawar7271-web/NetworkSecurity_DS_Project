@@ -1,3 +1,14 @@
 python-dotenv
 pandas
 numpy
+pymongo
+scikit-learn
+certifi
+matplotlib
+seaborn
+xgboost
+
+
+
+
+##-e .
