@@ -1,13 +1,19 @@
 from pymongo import MongoClient
 import certifi
+from dotenv import load_dotenv
+import os
 
-uri = "mongodb+srv://ranjit_user:Ranjit12345@cluster0.z5bw0jx.mongodb.net/?appName=Cluster0"
+# Load environment variables
+load_dotenv()
 
-# Create a new client and connect to the server
+# Get MongoDB URI securely
+uri = os.getenv("MONGO_DB_URL")
+
+# Create client
 client = MongoClient(uri, tlsCAFile=certifi.where())
 
 try:
     client.admin.command('ping')
-    print("Pinged your deployment. You successfully connected to MongoDB!")
+    print("MongoDB connected securely")
 except Exception as e:
     print(e)
