@@ -9,6 +9,10 @@ seaborn
 xgboost
 
 
+dill
+pickle
+scipy
+pyyaml
 
 
 ##-e .
