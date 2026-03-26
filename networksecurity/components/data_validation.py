@@ -49,7 +49,7 @@ class DataValidation:
                 d1=base_df[column]
                 d2=current_df[column]
 
-                # ✅ CLEAN DATA HERE (correct place)
+                
                 d1 = d1.replace([np.inf, -np.inf], np.nan).dropna()
                 d2 = d2.replace([np.inf, -np.inf], np.nan).dropna()
 
