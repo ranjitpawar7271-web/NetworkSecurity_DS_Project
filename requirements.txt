@@ -7,12 +7,14 @@ certifi
 matplotlib
 seaborn
 xgboost
-
-
+mlflow
+dagshub
 dill
 pickle
 scipy
 pyyaml
+fastapi
+uvicorn
 
 
 ##-e .
