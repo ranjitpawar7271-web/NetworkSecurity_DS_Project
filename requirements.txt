@@ -15,6 +15,15 @@ scipy
 pyyaml
 fastapi
 uvicorn
+fastapi
+uvicorn
+pandas
+numpy
+scikit-learn
+pymongo
+mlflow
+dagshub
+python-dotenv
 
 
 ##-e .
