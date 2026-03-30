@@ -107,12 +107,16 @@ jobs:
       # ✅ Stop existing container (if running)
       - name: Stop and remove existing container
         run: |
-          docker ps -q --filter "name=mltest" | grep -q . && docker stop mltest && docker rm -f mltest || true
+          docker rm -f mltest || true
+          docker rm -f $(docker ps -aq) || true
 
       # ✅ Run container
       - name: Run Docker container
         run: |
           docker run -d -p 8000:8000 --name mltest \
+          -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+          -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+          -e AWS_DEFAULT_REGION=${{ secrets.AWS_REGION }} \
           ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
       # ✅ Cleanup
