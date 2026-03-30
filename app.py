@@ -11,7 +11,7 @@ print(mongo_db_url)
 import pymongo
 from networksecurity.exception.exception import NetworkSecurityException
 from networksecurity.logging.logger import logging
-from pipeline.training_pipeline import TrainingPipeline
+from networksecurity.pipeline.training_pipeline import TrainingPipeline
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, File, UploadFile,Request

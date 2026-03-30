@@ -9,6 +9,11 @@ import sys
 from networksecurity.components.model_trainer import ModelTrainer
 from networksecurity.entity.config_entity import ModelTrainerConfig
 
+import sys
+import os
+
+sys.path.append(os.getcwd())
+
 if __name__ == "__main__":
 
     try:
@@ -59,6 +64,12 @@ if __name__ == "__main__":
         model_trainer_artifact=model_trainer.initiate_model_trainer()
 
         logging.info("Model Training artifact created")
+
+        from networksecurity.pipeline.training_pipeline import TrainingPipeline
+
+        if __name__ == "__main__":
+            pipeline = TrainingPipeline()
+            pipeline.run_pipeline()
 
     except Exception as e:
         logging.error("An error occurred in main pipeline")

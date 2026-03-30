@@ -133,15 +133,35 @@ class ModelTrainer:
         Network_Model = NetworkModel(preprocessor=preprocessor, model=best_model)
 
        
-                # ✅ Create final_model folder
+                
         final_model_dir = "final_model"
         os.makedirs(final_model_dir, exist_ok=True)
 
-        # ✅ Save preprocessor
+        
+
+        artifact_model_dir = os.path.dirname(
+    self.model_trainer_config.trained_model_file_path
+)
+
+        os.makedirs(artifact_model_dir, exist_ok=True)
+
+        # Save model in artifact
+        save_object(
+            os.path.join(artifact_model_dir, "model.pkl"),
+            best_model
+        )
+
+        # Save preprocessor in artifact
+        save_object(
+            os.path.join(artifact_model_dir, "preprocessor.pkl"),
+            preprocessor
+        )
+
+        print(" Model also saved in artifact/model_trainer/")
         save_object(
             os.path.join(final_model_dir, "preprocessor.pkl"),
             preprocessor
-        )
+            )
 
         # ✅ Save trained model
         save_object(
