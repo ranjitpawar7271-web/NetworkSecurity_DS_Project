@@ -23,9 +23,9 @@ from sklearn.ensemble import (
 )
 import pandas as pd
 import mlflow
-import dagshub
+# import dagshub
 
-dagshub.init(repo_owner='ranjitpawar7271', repo_name='NetworkSecurity_DS_Project', mlflow=True)
+# dagshub.init(repo_owner='ranjitpawar7271', repo_name='NetworkSecurity_DS_Project', mlflow=True)
 
 
 class ModelTrainer:
@@ -38,7 +38,8 @@ class ModelTrainer:
             raise NetworkSecurityException(e, sys)
 
     def track_mlflow(self, best_model, classificationmetric, X_sample):
-        mlflow.set_registry_uri("https://dagshub.com/ranjitpawar7271/NetworkSecurity_DS_Project.mlflow")
+        # mlflow.set_registry_uri("https://dagshub.com/ranjitpawar7271/NetworkSecurity_DS_Project.mlflow") ❌
+        mlflow.set_tracking_uri("file:./mlruns")
         tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
 
         with mlflow.start_run():
