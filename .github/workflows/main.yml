@@ -90,14 +90,19 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # ✅ FIX: Proper ECR login (removed manual login)
+      - name: Debug values
+        run: |
+          echo "ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}"
+          echo "REGION=${{ secrets.AWS_REGION }}"
+          echo "REPO=${{ secrets.ECR_REPOSITORY_NAME }}"
+
       - name: Login to Amazon ECR
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # ✅ Pull image from ECR
       - name: Pull latest image
         run: |
-          docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+          docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
       # ✅ Stop existing container (if running)
       - name: Stop and remove existing container
@@ -108,7 +113,7 @@ jobs:
       - name: Run Docker container
         run: |
           docker run -d -p 8000:8000 --name mltest \
-          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+          ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
 
       # ✅ Cleanup
       - name: Cleanup unused images
