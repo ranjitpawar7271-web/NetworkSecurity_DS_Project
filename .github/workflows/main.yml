@@ -81,7 +81,7 @@ jobs:
             echo "Repo: ${{ secrets.ECR_REPOSITORY_NAME }}"
         - name: Pull latest images
           run: |
-            docker pull ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+            docker pull 307495727669.dkr.ecr.ap-south-1.amazonaws.com/networksecurity:latest
 
         # - name: Stop and remove container if it exists
         #   run: |
@@ -89,7 +89,7 @@ jobs:
 
         - name: Run Docker Image to serve users
           run: |
-            docker run -d -p 8080:8080 --ipc="host" --name=mltest -e 'AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}'
+            docker run -d -p 8000:8000 --name mltest 307495727669.dkr.ecr.ap-south-1.amazonaws.com/networksecurity:latest
 
         - name: Clean previous images and containers
           run: |
