@@ -4,99 +4,112 @@ on:
   push:
     branches: [ main ]
     paths-ignore:
-     - 'README.md'
+      - 'README.md'
 
 jobs:
-    integration:
-        name: Continuous Integration
-        runs-on: ubuntu-latest
-        steps:
-        - name: Set up Python 3.8
-          uses: actions/checkout@v3
-          
-        - name: Lint code
-          run: echo "Linting repository"
 
-        - name: Run unit tests
-          run: echo "Running unit tests"
-    build-and-push-ecr-image:
-        name: Continuous Delivery
-        needs: integration
-        runs-on: ubuntu-latest
-        steps:
-        - name: Checkout code 
-          uses: actions/checkout@v3
+  # =========================
+  # 🔹 CONTINUOUS INTEGRATION
+  # =========================
+  integration:
+    name: Continuous Integration
+    runs-on: ubuntu-latest
 
-        - name: Install Utilities
-          run: |
-            sudo apt-get update
-            sudo apt-get install -y jq unzip
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-        - name: Configure AWS credentials
-          uses: aws-actions/configure-aws-credentials@v1
-          with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: ${{ secrets.AWS_REGION }}
+      - name: Lint code
+        run: echo "Linting repository"
 
-        - name: login to Amazon ECR
-          id: login-ecr
-          uses: aws-actions/amazon-ecr-login@v1
+      - name: Run unit tests
+        run: echo "Running unit tests"
 
-        - name: Build, tag, and push image to Amazon ECR
-          id: build-image
-          env:
-            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-            ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
-            IMAGE_TAG: latest
-          run: |
-            #Build a docker container and push it to ECR so that it can be used in the deployment step
-            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-            echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-    Continuous-Deployment:
-        name: Continuous Deployment
-        needs: build-and-push-ecr-image
-        runs-on:  ubuntu-latest
-        steps:
-        - name: Checkout code 
-          uses: actions/checkout@v3
+  # =========================
+  # 🔹 BUILD & PUSH TO ECR
+  # =========================
+  build-and-push-ecr-image:
+    name: Continuous Delivery
+    needs: integration
+    runs-on: ubuntu-latest
 
-        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-        - name: Configure AWS credentials
-          uses: aws-actions/configure-aws-credentials@v1
-          with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: ${{ secrets.AWS_REGION }}
+      - name: Install Utilities
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq unzip
 
-        - name: Login to Amazon ECR
-          run: |
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
-            | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_LOGIN_URI }}
-        - name: Debug secrets
-          run: |
-            echo "ECR URI: ${{ secrets.AWS_ECR_LOGIN_URI }}"
-            echo "Repo: ${{ secrets.ECR_REPOSITORY_NAME }}"
-        - name: Pull latest images
-          run: |
-            docker pull 307495727669.dkr.ecr.ap-south-1.amazonaws.com/networksecurity:latest
+      # ✅ FIX: Updated to v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-        # - name: Stop and remove container if it exists
-        #   run: |
-        #     docker ps -q --filter "name=mltest" | grep -q . && docker stop mltest && docker rm -fv mltest 
+      # ✅ Correct ECR login
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
-        - name: Run Docker Image to serve users
-          run: |
-            docker run -d -p 8000:8000 --name mltest 307495727669.dkr.ecr.ap-south-1.amazonaws.com/networksecurity:latest
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-        - name: Clean previous images and containers
-          run: |
-            docker system prune -f
+          # ✅ Updated output format (no deprecated set-output)
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-        - name: Debug values
-          run: |
-            echo ${{ secrets.AWS_ECR_LOGIN_URI }}
-            echo ${{ secrets.ECR_REPOSITORY_NAME }}
+
+  # =========================
+  # 🔹 CONTINUOUS DEPLOYMENT
+  # =========================
+  Continuous-Deployment:
+    name: Continuous Deployment
+    needs: build-and-push-ecr-image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # ✅ FIX: Updated version
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # ✅ FIX: Proper ECR login (removed manual login)
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # ✅ Pull image from ECR
+      - name: Pull latest image
+        run: |
+          docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+
+      # ✅ Stop existing container (if running)
+      - name: Stop and remove existing container
+        run: |
+          docker ps -q --filter "name=mltest" | grep -q . && docker stop mltest && docker rm -f mltest || true
+
+      # ✅ Run container
+      - name: Run Docker container
+        run: |
+          docker run -d -p 8000:8000 --name mltest \
+          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}:latest
+
+      # ✅ Cleanup
+      - name: Cleanup unused images
+        run: docker system prune -f
